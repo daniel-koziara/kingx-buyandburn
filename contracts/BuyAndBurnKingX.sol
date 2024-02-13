@@ -107,6 +107,10 @@ contract BuyAndBurnKingX {
 
         uint256 kingXReceived = kingXBalanceAfter - kingXBalanceBefore;
 
+        uint256 minKingXExpected = (amountToSwap * (100 - slippage)) / 100;
+
+        require(kingXReceived >= minKingXExpected, "Slippage too high");
+
         totalTitanXBoughtAndBurned += amountToSwap + rewardPerCall;
         totalKingXBoughtAndBurned += kingXReceived;
 
@@ -122,7 +126,7 @@ contract BuyAndBurnKingX {
                 tokenOut: address(kingX),
                 fee: 10000,
                 recipient: address(this),
-                deadline: block.timestamp,
+                deadline: block.timestamp + 15 minutes,
                 amountIn: titanXAmount,
                 amountOutMinimum: 0,
                 sqrtPriceLimitX96: 0
