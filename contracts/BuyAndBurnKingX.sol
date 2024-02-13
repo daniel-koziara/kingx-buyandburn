@@ -21,6 +21,7 @@ contract BuyAndBurnKingX {
     IERC20 private kingX;
     ISwapRouter private uniswapRouter;
 
+    uint256 private amountToSwap;
     uint256 private rewardPerCall;
     uint256 private slippage;
     uint256 private minInterval;
@@ -44,6 +45,7 @@ contract BuyAndBurnKingX {
         uniswapRouter = ISwapRouter(_uniswapRouter);
         slippage = 5;
         minInterval = 60;
+        amountToSwap = 1000;
     }
 
     modifier onlyOwner() {
@@ -81,6 +83,10 @@ contract BuyAndBurnKingX {
         slippage = _slippage;
     }
 
+    function setAmountToSwap(uint256 _amountToSwap) external onlyOwner {
+        amountToSwap = _amountToSwap;
+    }
+
     function setMinInterval(uint256 _interval) external onlyOwner {
         minInterval = _interval;
     }
@@ -92,21 +98,16 @@ contract BuyAndBurnKingX {
         );
         lastCallTimestamp = block.timestamp;
 
-        uint256 titanXAmount = rewardPerCall;
-        require(titanX.transfer(msg.sender, titanXAmount), "Transfer failed");
+        require(titanX.transfer(msg.sender, rewardPerCall), "Transfer failed");
 
         uint256 kingXBalanceBefore = kingX.balanceOf(address(this));
 
-        swapTitanXForKingX(titanXAmount);
+        swapTitanXForKingX(amountToSwap);
         uint256 kingXBalanceAfter = kingX.balanceOf(address(this));
 
         uint256 kingXReceived = kingXBalanceAfter - kingXBalanceBefore;
-        require(
-            kingXReceived >= (titanXAmount * (100 - slippage)) / 100,
-            "Slippage too high"
-        );
 
-        totalTitanXBoughtAndBurned += titanXAmount;
+        totalTitanXBoughtAndBurned += amountToSwap + rewardPerCall;
         totalKingXBoughtAndBurned += kingXReceived;
 
         emit BuyAndBurn(msg.sender, titanXAmount, kingXReceived);
@@ -138,8 +139,20 @@ contract BuyAndBurnKingX {
         return slippage;
     }
 
+    function getAmounttoSwap() public view returns (uint256) {
+        return amountToSwap;
+    }
+
     function getMinInterval() public view returns (uint256) {
         return minInterval;
+    }
+
+    function getKingxBalance() public view returns (uint256) {
+        return kingX.balanceOf(address(this));
+    }
+
+    function getTitanxBalance() public view returns (uint256) {
+        return titanX.balanceOf(address(this));
     }
 
     function getTotalTitanXBoughtAndBurned() public view returns (uint256) {
