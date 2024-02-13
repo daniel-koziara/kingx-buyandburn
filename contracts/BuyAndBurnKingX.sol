@@ -15,7 +15,7 @@ interface IERC20 {
     function approve(address spender, uint256 amount) external returns (bool);
 }
 
-contract BuyAndBurn {
+contract BuyAndBurnKingX {
     address private owner;
     IERC20 private titanX;
     IERC20 private kingX;
@@ -37,9 +37,10 @@ contract BuyAndBurn {
         uint256 kingXReceived
     );
 
-    constructor(address _titanX, address _uniswapRouter) {
+    constructor(address _titanX, address _kingX, address _uniswapRouter) {
         owner = msg.sender;
         titanX = IERC20(_titanX);
+        kingX = IERC20(_kingX);
         uniswapRouter = ISwapRouter(_uniswapRouter);
         slippage = 5;
         minInterval = 60;
@@ -105,8 +106,6 @@ contract BuyAndBurn {
             "Slippage too high"
         );
 
-        require(kingX.transfer(address(0), kingXReceived), "Burn failed");
-
         totalTitanXBoughtAndBurned += titanXAmount;
         totalKingXBoughtAndBurned += kingXReceived;
 
@@ -120,7 +119,7 @@ contract BuyAndBurn {
             .ExactInputSingleParams({
                 tokenIn: address(titanX),
                 tokenOut: address(kingX),
-                fee: 3000,
+                fee: 10000,
                 recipient: address(this),
                 deadline: block.timestamp,
                 amountIn: titanXAmount,
@@ -141,10 +140,6 @@ contract BuyAndBurn {
 
     function getMinInterval() public view returns (uint256) {
         return minInterval;
-    }
-
-    function getTitanXForSale() public view returns (uint256) {
-        return titanXForSale;
     }
 
     function getTotalTitanXBoughtAndBurned() public view returns (uint256) {
