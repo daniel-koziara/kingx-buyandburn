@@ -139,7 +139,7 @@ contract BuyAndBurnKingX {
         return slippage;
     }
 
-    function getAmounttoSwap() public view returns (uint256) {
+    function getAmountToSwap() public view returns (uint256) {
         return amountToSwap;
     }
 
