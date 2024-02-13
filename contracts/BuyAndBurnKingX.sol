@@ -110,7 +110,7 @@ contract BuyAndBurnKingX {
         totalTitanXBoughtAndBurned += amountToSwap + rewardPerCall;
         totalKingXBoughtAndBurned += kingXReceived;
 
-        emit BuyAndBurn(msg.sender, titanXAmount, kingXReceived);
+        emit BuyAndBurn(msg.sender, amountToSwap, kingXReceived);
     }
 
     function swapTitanXForKingX(uint256 titanXAmount) private whenNotPaused {
