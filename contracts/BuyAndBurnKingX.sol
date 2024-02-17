@@ -3,14 +3,14 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
-contract BuyAndBurnKingX {
+contract BuyAndBurnKingX is Ownable {
     using SafeERC20 for IERC20;
 
-    address private owner;
     IERC20 private titanX;
     IERC20 private kingX;
     ISwapRouter private uniswapRouter;
@@ -32,19 +32,17 @@ contract BuyAndBurnKingX {
         uint256 kingXReceived
     );
 
-    constructor(address _titanX, address _kingX, address _uniswapRouter) {
-        owner = msg.sender;
+    constructor(
+        address _titanX,
+        address _kingX,
+        address _uniswapRouter
+    ) Ownable(msg.sender) {
         titanX = IERC20(_titanX);
         kingX = IERC20(_kingX);
         uniswapRouter = ISwapRouter(_uniswapRouter);
         slippage = 5;
         minInterval = 60;
         amountToSwap = 100000000000000000000000; // 100k titanx
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Caller is not the owner");
-        _;
     }
 
     modifier whenNotPaused() {
