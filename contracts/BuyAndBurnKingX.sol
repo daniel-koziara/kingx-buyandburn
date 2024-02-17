@@ -1,21 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
-interface IERC20 {
-    function balanceOf(address account) external view returns (uint256);
-
-    function transfer(
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-
-    function approve(address spender, uint256 amount) external returns (bool);
-}
 
 contract BuyAndBurnKingX {
+
+    using SafeERC20 for IERC20;
+
     address private owner;
     IERC20 private titanX;
     IERC20 private kingX;
@@ -45,7 +41,7 @@ contract BuyAndBurnKingX {
         uniswapRouter = ISwapRouter(_uniswapRouter);
         slippage = 5;
         minInterval = 60;
-        amountToSwap = 1000;
+        amountToSwap = 100000000000000000000000; // 100k titanx
     }
 
     modifier onlyOwner() {
@@ -96,9 +92,13 @@ contract BuyAndBurnKingX {
             block.timestamp - lastCallTimestamp > minInterval,
             "Wait for the next call interval"
         );
+
+        require(msg.sender == tx.origin, "InvalidCaller");
+
+
         lastCallTimestamp = block.timestamp;
 
-        require(titanX.transfer(msg.sender, rewardPerCall), "Transfer failed");
+        titanX.safeTransfer(msg.sender, rewardPerCall);
 
         uint256 kingXBalanceBefore = kingX.balanceOf(address(this));
 
@@ -107,9 +107,6 @@ contract BuyAndBurnKingX {
 
         uint256 kingXReceived = kingXBalanceAfter - kingXBalanceBefore;
 
-        uint256 minKingXExpected = (amountToSwap * (100 - slippage)) / 100;
-
-        require(kingXReceived >= minKingXExpected, "Slippage too high");
 
         totalTitanXBoughtAndBurned += amountToSwap + rewardPerCall;
         totalKingXBoughtAndBurned += kingXReceived;
@@ -129,7 +126,6 @@ contract BuyAndBurnKingX {
                 deadline: block.timestamp + 15 minutes,
                 amountIn: titanXAmount,
                 amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
             });
 
         uniswapRouter.exactInputSingle(params);
@@ -165,5 +161,9 @@ contract BuyAndBurnKingX {
 
     function getTotalKingXBoughtAndBurned() public view returns (uint256) {
         return totalKingXBoughtAndBurned;
+    }
+
+    function getIsPausedBnB() public view returns (bool) {
+        return paused;
     }
 }
