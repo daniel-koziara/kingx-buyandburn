@@ -7,9 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
-
 contract BuyAndBurnKingX {
-
     using SafeERC20 for IERC20;
 
     address private owner;
@@ -95,18 +93,15 @@ contract BuyAndBurnKingX {
 
         require(msg.sender == tx.origin, "InvalidCaller");
 
-
         lastCallTimestamp = block.timestamp;
-
-        titanX.safeTransfer(msg.sender, rewardPerCall);
 
         uint256 kingXBalanceBefore = kingX.balanceOf(address(this));
 
         swapTitanXForKingX(amountToSwap);
         uint256 kingXBalanceAfter = kingX.balanceOf(address(this));
+        titanX.safeTransfer(msg.sender, rewardPerCall);
 
         uint256 kingXReceived = kingXBalanceAfter - kingXBalanceBefore;
-
 
         totalTitanXBoughtAndBurned += amountToSwap + rewardPerCall;
         totalKingXBoughtAndBurned += kingXReceived;
@@ -126,6 +121,7 @@ contract BuyAndBurnKingX {
                 deadline: block.timestamp + 15 minutes,
                 amountIn: titanXAmount,
                 amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
             });
 
         uniswapRouter.exactInputSingle(params);
